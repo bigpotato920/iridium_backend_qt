@@ -6,6 +6,7 @@
 
 QT       += core gui
 QT       += network
+QT       += webkit
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = iridium_backend
@@ -13,8 +14,10 @@ TEMPLATE = app
 
 
 SOURCES += main.cpp\
-        iridiumdialog.cpp
+        iridiumdialog.cpp \
+    coordinate.cpp
 
-HEADERS  += iridiumdialog.h
+HEADERS  += iridiumdialog.h \
+    coordinate.h
 
 FORMS    += iridiumdialog.ui

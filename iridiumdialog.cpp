@@ -3,25 +3,37 @@
 #include <QtNetwork/QHostAddress>
 #include <QByteArray>
 #include <QDebug>
+#include <QUrl>
+#include <QWidget>
+#include <QWebFrame>
+#include <QWebView>
+#include <QWebPage>
+#include <QFile>
+#include <QWebSecurityOrigin>
 
 #include "iridiumdialog.h"
 #include "ui_iridiumdialog.h"
+#include "coordinate.h"
 
 IridiumDialog::IridiumDialog(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::IridiumDialog)
 {
-    ui->setupUi(this);
 
+    ui->setupUi(this);
+    setLayout(ui->mainLayout);
     gssPort = 10800;
     termialPort = 8888;
     termialClient = new QTcpSocket;
     terminalServer = new QTcpServer;
     initServerService();
-    connect(ui->sendButton, SIGNAL(clicked()), this, SLOT(connectToGssServer()));
+    //connect(ui->sendButton, SIGNAL(clicked()), this, SLOT(connectToGssServer()));
+    connect(ui->sendButton, SIGNAL(clicked()), this, SLOT(test()));
     connect(termialClient, SIGNAL(connected()), this, SLOT(connectedToGssServer()));
     connect(termialClient, SIGNAL(readyRead()), this, SLOT(processConfirm()));
     connect(termialClient, SIGNAL(error(QAbstractSocket::SocketError)), this ,SLOT(displayError(QAbstractSocket::SocketError)));
+
+    m_coordinate = new Coordinate(this);
 }
 
 IridiumDialog::~IridiumDialog()
@@ -71,6 +83,7 @@ void IridiumDialog::processReadyRead()
     in.readRawData(payload.data(), payloadLen);
     ui->msgRcvEdit->append(payload);
 
+    test();
 }
 
 void IridiumDialog::processDisconnect()
@@ -117,6 +130,7 @@ void IridiumDialog::displayError(QAbstractSocket::SocketError socketError)
     ui->msgRcvEdit->append(QString(socketError));
 }
 
+
 void IridiumDialog::sendMsg()
 {
 
@@ -150,4 +164,31 @@ void IridiumDialog::sendMsg()
 
 }
 
+void IridiumDialog::test()
+{
+    refreshMap(111,33);
+}
 
+void IridiumDialog::refreshMap(double longitude, double latitude)
+{
+    int count = m_coordinate->getCount();
+    m_coordinate->setLon(count, longitude);
+    m_coordinate->setLat(count, latitude);
+    m_coordinate->increaseCount();
+
+    ui->webView->settings()->setAttribute(QWebSettings::PluginsEnabled, true);
+    ui->webView->settings()->setAttribute(QWebSettings::JavascriptEnabled, true);
+    ui->webView->settings()->setAttribute(QWebSettings::DeveloperExtrasEnabled, true);
+    ui->webView->settings()->setAttribute(QWebSettings::JavascriptCanOpenWindows, true);
+    ui->webView->settings()->setAttribute(QWebSettings::JavaEnabled, true);
+    ui->webView->load(QUrl("file:///E:/Project/MapFinal/final.html"));
+
+
+    connect(ui->webView->page()->mainFrame(),SIGNAL(javaScriptWindowObjectCleared()),this,SLOT(addJavaScriptObject()));
+    ui->webView->show();
+}
+
+void IridiumDialog::addJavaScriptObject()
+{
+    ui->webView->page()->mainFrame()->addToJavaScriptWindowObject("Coordinate",m_coordinate);
+}

@@ -4,13 +4,17 @@
 #include <QDialog>
 #include <QTcpSocket>
 #include <QAbstractSocket>
+
 class QTcpServer;
 class QTcpSocket;
 class QHostAddress;
+class Coordinate;
 
 namespace Ui {
 class IridiumDialog;
 }
+
+
 
 class IridiumDialog : public QDialog
 {
@@ -26,7 +30,9 @@ private slots:
     void connectedToGssServer();
     void processConfirm();
     void displayError(QAbstractSocket::SocketError socketError);
-
+    void test();
+    void refreshMap(double longitude, double latitude);
+    void addJavaScriptObject();
 public:
     explicit IridiumDialog(QWidget *parent = 0);
     ~IridiumDialog();
@@ -43,9 +49,12 @@ private:
     quint16 termialPort;
 
     enum {MAX_SENDBUF_LEN = 340};
+    Coordinate *m_coordinate;
 
     Ui::IridiumDialog *ui;
 
 };
+
+
 
 #endif // IRIDIUMDIALOG_H
